@@ -1,0 +1,282 @@
+Technical Breakdown
+
+1. Technology Stack
+
+Frontend: React + Vite
+
+- What it is: React builds the user interface. Vite runs and builds the app.
+- Why it is used: It supports fast development and clean feature separation.
+- Where it is used: `src/App.jsx`, `src/components/`, `src/main.jsx`
+
+OpenWeather API
+
+- What it is: Weather and forecast data provider.
+- Why it is used: Rainfall is a major flood-risk signal.
+- Where it is used: Scan, Map click, Wadi detail, Route analysis, live status, and Voice assistant.
+
+OpenRouteService API
+
+- What it is: Routing provider.
+- Why it is used: The app needs real route geometry and route alternatives.
+- Where it is used: `src/utils/routeService.js`, `src/components/RouteAnalysis.jsx`
+
+Nominatim API
+
+- What it is: Geocoding and reverse-geocoding service.
+- Why it is used: Converts place names into coordinates and coordinates into readable names.
+- Where it is used: `src/utils/locationService.js`
+
+Firebase Firestore
+
+- What it is: Cloud database.
+- Why it is used: Stores community reports and sends real-time updates.
+- Where it is used: `src/utils/firebaseService.js`, `src/App.jsx`, `src/components/CommunityScreen.jsx`
+
+Google Vision API
+
+- What it is: Image label analysis service.
+- Why it is used: Detects flood-related objects and surfaces in uploaded images.
+- Where it is used: `src/utils/apiService.js`, then reused by Scan and Community features.
+
+Claude API
+
+- What it is: Language model API.
+- Why it is used: Generates human-readable explanations and assistant replies.
+- Where it is used: `src/utils/apiService.js`, then reused by Scan, Community, and WadiEcho.
+
+Leaflet
+
+- What it is: Interactive map library.
+- Why it is used: Displays Oman, wadis, reports, region overlays, route lines, and pickers.
+- Where it is used: `MapScreen.jsx`, `RouteAnalysis.jsx`, `CommunityScreen.jsx`, `MapPickerModal.jsx`
+
+Browser Voice APIs
+
+- What it is: Built-in speech recognition and speech synthesis.
+- Why it is used: Supports spoken queries and spoken answers.
+- Where it is used: `ScanScreen.jsx`, `WadiEcho.jsx`
+
+
+2. Core System Modules
+
+Scan System
+
+- What it does: Analyzes a photo together with location, weather, memory, and nearby reports.
+- Files used: `ScanScreen.jsx`, `apiService.js`, `riskEngine.js`, `locationService.js`, `communityService.js`
+- Output: Risk score, level, explanation, and time-based forecast view.
+
+Route Analysis System
+
+- What it does: Evaluates route safety between a start and destination.
+- Files used: `RouteAnalysis.jsx`, `routeService.js`, `apiService.js`, `locationService.js`, `communityService.js`
+- Special behavior: If the main route is HIGH risk, the system searches for safer alternatives and can open Google Maps for the safer route.
+
+Map System
+
+- What it does: Shows live wadi markers, report dots, click analysis, and region overlays.
+- Files used: `MapScreen.jsx`, `WadiDetailPanel.jsx`, `MapPickerModal.jsx`, `riskEngine.js`, `communityService.js`
+- Output: Visual region state plus detailed location cards.
+
+Community Report System
+
+- What it does: Accepts image, note, and location, calculates risk, then stores the report.
+- Files used: `CommunityScreen.jsx`, `firebaseService.js`, `apiService.js`, `riskEngine.js`
+- Output: Live report list and report detail views.
+
+Voice Assistant System
+
+- What it does: Answers flood-safety questions using real app data.
+- Files used: `WadiEcho.jsx`, `apiService.js`, `locationService.js`, `riskEngine.js`, `routeService.js`
+- Output: Text reply, spoken reply, and summary card.
+
+Memory System
+
+- What it does: Adds stored wadi history and historical flood patterns.
+- Files used: `src/data/wadis.js`, `src/utils/riskEngine.js`
+- Output: Supporting memory influence in risk scoring and explanation.
+
+
+3. Data Flow
+
+Scan Flow
+
+User uploads image
+-> location is selected
+-> weather and forecast are loaded
+-> image is analyzed
+-> nearby reports are counted
+-> memory is checked
+-> risk is calculated
+-> explanation is generated
+-> result is shown
+
+Route Flow
+
+User enters start and destination
+-> locations are geocoded
+-> route is fetched
+-> route points are sampled
+-> forecast is checked at sampled points
+-> nearby reports and wadis are checked
+-> route risk is calculated
+-> safer route search runs if needed
+-> map and timelines are shown
+
+Community Flow
+
+User enters location + note + image
+-> weather is checked
+-> image is analyzed
+-> memory is checked
+-> report risk is calculated
+-> report is saved
+-> real-time update refreshes the app
+
+Map Click Flow
+
+User clicks map
+-> coordinates are captured
+-> reverse geocoding gets a place name
+-> weather and forecast are loaded
+-> memory and nearby reports are checked
+-> risk is calculated
+-> analysis card is shown
+
+Voice Flow
+
+User types or speaks
+-> intent is checked
+-> location is resolved
+-> weather and forecast are loaded
+-> reports and nearest wadi are checked
+-> risk is calculated
+-> Claude or local fallback builds the reply
+-> text and voice output are shown
+
+
+4. AI Usage
+
+Image AI
+
+- Google Vision reads labels from uploaded images.
+- Labels are translated into weighted risk signals.
+
+Language AI
+
+- Claude turns real system values into clearer natural-language explanations.
+- If Claude fails, local explanation logic still works.
+
+Decision Intelligence
+
+- The app combines image, weather, memory, text, and community evidence.
+- This creates a more realistic result than using a single input only.
+
+
+5. Risk Calculation Logic
+
+Main idea:
+
+Image signals
++ text signals
++ rainfall
++ memory support
++ nearby community evidence
+= final risk percentage
+
+Risk labels:
+- 0 to 30 -> LOW
+- 31 to 70 -> MEDIUM
+- 71 to 100 -> HIGH
+
+
+6. Firebase Usage
+
+What is stored:
+- latitude
+- longitude
+- note
+- image
+- location name
+- display name
+- final risk
+- explanation
+- created time
+
+How it works:
+- The app saves reports to Firestore when Firebase is configured
+- The app listens to live report updates
+- If Firebase is unavailable, the app falls back to local in-app behavior so the UI still works
+
+
+7. Map System Details
+
+How locations are selected:
+- search
+- GPS
+- map picker
+
+How map analysis works:
+- direct click analysis checks real location conditions
+- region overlays use GeoJSON boundaries
+- wadi markers show point-based risk
+- community dots show saved reports
+
+Overlay modes:
+- Off
+- Risk Layer
+- Rain Layer
+
+
+8. Voice Assistant Details
+
+How input is taken:
+- typed text
+- microphone speech
+
+How response is generated:
+- system data is prepared first
+- Claude may rewrite it into natural language
+- local fallback reply is always available
+
+How it stays consistent:
+- WadiEcho uses the same weather, memory, and report logic as the rest of the app
+
+
+9. Multi-Language Support
+
+How language works:
+- Global language state lives in `App.jsx`
+- Text comes from `src/utils/i18n.js`
+- Layout direction changes with Arabic
+
+How voice works:
+- speech recognition changes language code
+- speech synthesis changes language code
+
+
+10. Error Handling
+
+If weather fails:
+- safe fallback weather values are returned
+
+If forecast fails:
+- safe fallback forecast values are returned
+
+If Vision fails:
+- a fallback image score is used
+
+If Claude fails:
+- local explanation logic is used
+
+If Firebase fails:
+- local in-app report fallback keeps the UI usable
+
+If geolocation fails:
+- the app falls back to Muscat coordinates
+
+
+11. Final Summary
+
+WadiGuard AI+ is a multi-signal flood-awareness system.
+It combines live weather, route context, map analysis, image understanding, memory, and community evidence into one practical safety result.
+Its strength comes from shared logic across all features, real-time local context, and clear user-facing explanations.

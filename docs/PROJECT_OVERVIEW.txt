@@ -1,0 +1,216 @@
+1. PROJECT OVERVIEW
+
+WadiGuard AI+ is a flood-risk awareness system built for Oman.
+Its main purpose is to help users understand danger around wadis, roads, and nearby low areas before traveling, entering a location, or reporting conditions.
+
+The system combines:
+- live weather data
+- short forecast data
+- image analysis
+- historical wadi memory
+- nearby community reports
+
+The app then turns these signals into:
+- a final risk percentage
+- a LOW / MEDIUM / HIGH label
+- a short explanation
+- timelines for now and near-future conditions
+
+
+2. FEATURES
+
+FEATURE: Scan (Image Analysis)
+
+What it does:
+- Lets the user upload an image
+- Uses GPS, searched location, or map-picked location
+- Gets current weather and short forecast
+- Checks nearby reports
+- Uses historical memory support
+- Calculates risk for now, +1H, and +2H
+
+Files involved:
+- src/components/ScanScreen.jsx
+- src/utils/apiService.js
+- src/utils/riskEngine.js
+- src/utils/locationService.js
+- src/utils/communityService.js
+
+Key logic:
+- `imageScore` comes from Google Vision labels
+- `rainfall` comes from OpenWeather
+- `memoryMatch` comes from historical pattern matching
+- `communityCount` comes from nearby stored reports
+
+
+FEATURE: Map Analysis
+
+What it does:
+- Shows Oman on an interactive map
+- Supports `Off`, `Risk Layer`, and `Rain Layer`
+- Lets the user click the map directly in `Off` mode
+- Lets the user click colored regions in overlay modes
+- Shows wadi markers and optional community report dots
+- Displays a bottom analysis card with rain and risk timelines
+
+Files involved:
+- src/components/MapScreen.jsx
+- src/components/WadiDetailPanel.jsx
+- src/components/MapPickerModal.jsx
+- src/utils/riskEngine.js
+- src/utils/communityService.js
+- src/utils/apiService.js
+
+Key logic:
+- Wadi markers use live weather and nearby report context
+- Region overlays use GeoJSON boundaries from `public/data`
+- Region metrics reuse shared rainfall and risk calculation logic
+
+
+FEATURE: Route Analysis
+
+What it does:
+- Takes a start point and destination
+- Fetches the main route
+- Samples route segments for weather, community, and memory checks
+- Calculates risk for `NOW`, `+1H`, and `+2H`
+- Searches for safer alternative routes only when the main route becomes HIGH risk
+- Opens Google Maps when a safer route exists
+
+Files involved:
+- src/components/RouteAnalysis.jsx
+- src/utils/routeService.js
+- src/utils/apiService.js
+- src/utils/locationService.js
+- src/utils/communityService.js
+
+Key logic:
+- OpenRouteService provides route geometry
+- Segment samples keep analysis lightweight
+- Weather, nearby reports, and nearby wadis are combined into route risk
+- Safer route is shown only when it is genuinely lower risk than the main route
+
+
+FEATURE: Community Reports
+
+What it does:
+- Lets users submit a report with image, note, and location
+- Calculates risk before saving the report
+- Saves to Firebase Firestore when available
+- Falls back to local in-app storage if Firebase is unavailable
+- Shows recent reports and detail popups
+
+Files involved:
+- src/components/CommunityScreen.jsx
+- src/utils/firebaseService.js
+- src/utils/communityService.js
+- src/utils/apiService.js
+- src/utils/riskEngine.js
+
+Key logic:
+- Reports include image, note, location, risk, and explanation
+- Firestore subscription updates the app in real time
+- Nearby reports are reused by Scan, Map, Route, and Voice features
+
+
+FEATURE: Voice Assistant (WadiEcho)
+
+What it does:
+- Accepts typed or spoken flood-safety questions
+- Resolves location from words or GPS
+- Checks weather, forecast, nearby reports, and nearby wadis
+- Calculates risk for now and near-future points
+- Returns a text answer and can speak it aloud
+
+Files involved:
+- src/components/WadiEcho.jsx
+- src/utils/apiService.js
+- src/utils/locationService.js
+- src/utils/riskEngine.js
+- src/utils/routeService.js
+
+Key logic:
+- Uses system data first
+- Uses Claude for natural replies when available
+- Falls back to local reply generation if Claude is unavailable
+
+
+FEATURE: Memory Engine
+
+What it does:
+- Stores known wadi locations and base risk context
+- Stores historical flood patterns
+- Supports risk scoring with place memory
+- Helps explain why a location may become dangerous
+
+Files involved:
+- src/data/wadis.js
+- src/utils/riskEngine.js
+
+Key logic:
+- Nearby wadis provide supporting memory
+- Historical patterns compare rainfall, image score, and season
+- Memory boosts risk only as a supporting factor
+
+
+3. TECHNOLOGIES USED
+
+- React -> builds the frontend screens and state flow
+- Vite -> runs and builds the frontend app
+- Leaflet -> powers maps, markers, routes, and location pickers
+- OpenWeather -> provides current weather and short forecast
+- Firebase Firestore -> stores and streams community reports
+- Google Vision -> analyzes uploaded images
+- OpenRouteService -> provides route geometry and alternatives
+- Nominatim -> geocoding and reverse geocoding
+- Claude API -> natural explanations and assistant replies
+
+
+4. DATA FLOW
+
+Simple flow:
+
+User -> Input -> Processing -> Risk Calculation -> Output
+
+Example:
+- User uploads an image, taps the map, plans a route, asks WadiEcho, or submits a report
+- The app resolves location
+- The app loads weather and forecast
+- The app checks memory and nearby reports
+- Shared risk logic computes a final score
+- The app shows risk level, timeline, and explanation
+
+
+5. RISK CALCULATION LOGIC
+
+In simple words:
+
+Image + Weather + Memory + Community = Final Risk Score
+
+What each part means:
+- Image checks what is visible in the uploaded photo
+- Weather checks rainfall now and soon
+- Memory checks known wadi and historical flood context
+- Community checks real nearby reports from users
+
+The final score is shown as:
+- LOW
+- MEDIUM
+- HIGH
+
+
+6. SPECIAL FEATURES
+
+- Real-time community updates from Firestore
+- Arabic and English support
+- Voice input and voice output
+- Region-based map overlays
+- Safer route suggestion with Google Maps redirect
+- Live top status ticker
+- Mobile-friendly screens for field use
+
+
+7. FINAL SUMMARY
+
+WadiGuard AI+ is useful in real life because it helps people make safer decisions before entering wadis, driving routes, or reacting to changing rain conditions.
+Instead of relying on one signal only, it combines multiple real signals into one clear safety result that is easier to understand and act on.

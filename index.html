@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- ===== APP SHELL HTML ===== -->
+    <!-- Base HTML document for the React application and PWA metadata. -->
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WadiGuard AI+</title>
+
+    <!-- Theme and mobile app behavior -->
+    <meta name="theme-color" content="#0d1f3c" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- PWA manifest and icons -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/pwa-192.png" />
+    <link rel="apple-touch-icon" href="/pwa-192.png" />
+
+    <!-- Leaflet CSS for the map UI -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  </head>
+  <body>
+    <!-- React mounts into this root element -->
+    <div id="root"></div>
+
+    <!-- Main React entry file -->
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

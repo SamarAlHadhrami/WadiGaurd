@@ -1,0 +1,432 @@
+1. INTRODUCTION
+
+This file explains how the project is organized.
+It maps the current codebase and shows what each major file or folder is responsible for.
+
+
+2. FOLDER OVERVIEW
+
+src/
+- Main application source code
+- Contains the React app, screens, helpers, styles, and static data
+
+src/components/
+- User-facing feature screens and UI parts
+- This is where Scan, Map, Route, Community, and Voice features live
+
+src/utils/
+- Shared logic used across features
+- Includes risk scoring, API calls, Firebase, geolocation, translations, and route analysis
+
+src/data/
+- Static local project data
+- Includes known wadis, flood memory, and lightweight region reference data
+
+public/
+- Public files served directly by the app
+- Includes service worker, manifest, icons, and GeoJSON map files
+
+docs/
+- Presentation and project explanation files
+- These files explain the current system in simple language
+
+
+3. MAIN APPLICATION FILES
+
+FILE: src/main.jsx
+
+Purpose:
+Starts the React application.
+
+What it does:
+- Mounts the `App` component
+- Loads global CSS
+- Registers the service worker after page load
+
+
+FILE: src/App.jsx
+
+Purpose:
+Main application shell.
+
+What it does:
+- Controls the tab navigation
+- Handles language switching
+- Loads and stores community reports
+- Refreshes the live top status ticker
+- Connects all screens together
+
+Key parts:
+- `activeTab` state
+- Firebase subscription
+- live status refresh
+- `onAddReport()`
+
+
+FILE: src/index.css
+
+Purpose:
+Global styling file.
+
+What it does:
+- Loads Tailwind layers
+- Defines shared app-wide styles
+- Controls global background, spacing, and scrollbar behavior
+
+
+FILE: src/App.css
+
+Purpose:
+Legacy style file from the starter setup.
+
+What it does:
+- Keeps some older shared styles
+- Is not the main source of current feature styling
+
+
+4. COMPONENT FILES
+
+FILE: src/components/ScanScreen.jsx
+
+Purpose:
+Image-based flood analysis.
+
+What it does:
+- Accepts an uploaded image
+- Uses GPS, search, or map selection for location
+- Loads weather and forecast data
+- Runs the risk engine
+- Displays a final risk result and timelines
+
+Key functions:
+- `handleImage()`
+- `analyze()`
+- `toggleVoice()`
+- `useGpsLocation()`
+- `searchSelectedLocation()`
+
+
+FILE: src/components/MapScreen.jsx
+
+Purpose:
+Main interactive map.
+
+What it does:
+- Shows wadi markers
+- Shows optional community report dots
+- Supports direct map click analysis
+- Supports region-based `Risk Layer` and `Rain Layer`
+- Switches between ADM1 and ADM2 boundaries based on zoom
+- Shows a bottom analysis card for selected locations
+
+Key parts:
+- `RegionOverlay`
+- `MapClickAnalysis`
+- `MapViewportControl`
+- region metrics calculation
+- marker toggles
+
+
+FILE: src/components/RouteAnalysis.jsx
+
+Purpose:
+Route safety analysis screen.
+
+What it does:
+- Takes a start and destination
+- Runs route analysis
+- Shows the primary route and safer route when available
+- Displays risk timelines and explanation
+- Opens Google Maps for the safer route
+
+Key functions:
+- `analyzeSelectedRoute()`
+- `useGpsForStart()`
+- `useGpsForDestination()`
+
+
+FILE: src/components/CommunityScreen.jsx
+
+Purpose:
+Community reporting feature.
+
+What it does:
+- Lets the user submit a note, image, and location
+- Calculates risk before saving
+- Saves reports through Firebase or local fallback
+- Displays recent reports and report details
+
+Key functions:
+- `handleImage()`
+- `submitReport()`
+- `useGps()`
+- `searchLocation()`
+
+
+FILE: src/components/WadiEcho.jsx
+
+Purpose:
+Voice and text assistant screen.
+
+What it does:
+- Accepts typed or spoken questions
+- Resolves the target location
+- Loads weather, forecast, report, and memory context
+- Builds and speaks a safety answer
+
+Key functions:
+- `buildFallbackReply()`
+- `resolveLocation()`
+- `runCommand()`
+- `toggleListening()`
+
+
+FILE: src/components/WadiDetailPanel.jsx
+
+Purpose:
+Detailed panel for one selected wadi.
+
+What it does:
+- Loads weather for the selected wadi
+- Counts nearby reports
+- Calculates current risk
+- Shows memory and explanation details
+
+
+FILE: src/components/MapPickerModal.jsx
+
+Purpose:
+Reusable map location picker.
+
+What it does:
+- Opens a modal map
+- Lets the user tap one point
+- Returns the selected coordinates to the current screen
+
+
+FILE: src/components/InterceptScreen.jsx
+
+Purpose:
+Legacy full-screen warning style view.
+
+What it does:
+- Shows an emergency-style flood warning layout
+- Supports map redirection
+
+Note:
+- This is a legacy screen and is not part of the main tab flow
+
+
+5. UTILITY FILES
+
+FILE: src/utils/riskEngine.js
+
+Purpose:
+Core risk calculation engine.
+
+What it does:
+- Converts image, text, weather, memory, and community inputs into risk
+- Returns risk level objects and formatted values
+- Builds readable explanation text
+- Matches historical patterns
+
+Key functions:
+- `computeIntelligentRisk()`
+- `computeEnvironmentalRisk()`
+- `getRiskLevel()`
+- `formatRiskWithLevel()`
+- `buildDynamicExplanation()`
+- `matchHistoricalPattern()`
+
+
+FILE: src/utils/apiService.js
+
+Purpose:
+External service integration layer.
+
+What it does:
+- Calls OpenWeather
+- Calls Google Vision
+- Calls Claude
+- Returns normalized data for the rest of the app
+
+Key functions:
+- `getWeatherData()`
+- `getForecastTimeline()`
+- `analyzeImageSignals()`
+- `generateRiskExplanation()`
+- `generateWadiEchoReply()`
+
+
+FILE: src/utils/firebaseService.js
+
+Purpose:
+Firebase and Firestore connection layer.
+
+What it does:
+- Initializes Firebase from `.env`
+- Saves community reports
+- Loads community reports in real time
+- Normalizes Firestore data into app-friendly objects
+
+Key functions:
+- `isFirebaseReady()`
+- `subscribeToCommunityReports()`
+- `saveCommunityReport()`
+
+
+FILE: src/utils/communityService.js
+
+Purpose:
+Community-report helper logic.
+
+What it does:
+- Measures distance between points
+- Finds nearby reports
+- Counts nearby reports
+- Formats report times
+- Filters report lists by age
+
+Key functions:
+- `distanceKm()`
+- `getNearbyReports()`
+- `countNearbyReports()`
+- `formatReportTime()`
+- `filterReportsWithinDays()`
+- `filterSameDayReports()`
+
+
+FILE: src/utils/locationService.js
+
+Purpose:
+Location and search helpers.
+
+What it does:
+- Gets current device location
+- Geocodes Oman place names
+- Reverse geocodes coordinates
+- Builds short readable location labels
+
+Key functions:
+- `getCurrentLocation()`
+- `geocodeLocation()`
+- `reverseGeocode()`
+- `getShortLocationName()`
+- `validateLocationQuery()`
+
+
+FILE: src/utils/routeService.js
+
+Purpose:
+Shared route analysis logic.
+
+What it does:
+- Fetches route geometry
+- Samples route points
+- Checks route weather and report context
+- Calculates route risk timeline
+- Searches and ranks safer alternatives
+
+Key functions:
+- `findNearbyWadis()`
+- `sampleRoutePoints()`
+- `fetchRoute()`
+- `analyzeRoute()`
+
+
+FILE: src/utils/i18n.js
+
+Purpose:
+Translation and language helpers.
+
+What it does:
+- Stores English and Arabic UI text
+- Returns translated labels
+- Helps detect RTL layout state
+
+Key functions:
+- `t()`
+- `isArabic()`
+
+
+6. DATA FILES
+
+FILE: src/data/wadis.js
+
+Purpose:
+Known wadi and memory dataset.
+
+What it does:
+- Stores predefined wadi locations
+- Stores base risk context
+- Stores flood-related descriptions and history
+- Stores historical flood pattern data
+
+
+FILE: src/data/omanRegions.js
+
+Purpose:
+Lightweight region reference dataset.
+
+What it does:
+- Stores simplified region information
+- Acts as a local data reference
+
+Note:
+- The main live map uses GeoJSON files from `public/data/`
+
+
+7. PUBLIC FILES
+
+FILE: public/sw.js
+
+Purpose:
+Service worker.
+
+What it does:
+- Supports caching behavior
+- Helps the app behave more like a PWA
+
+
+FILE: public/manifest.webmanifest
+
+Purpose:
+PWA manifest.
+
+What it does:
+- Defines installable app metadata
+- Supports homescreen install behavior
+
+
+FILE: public/data/oman_regions.geojson
+
+Purpose:
+ADM1 Oman region boundaries.
+
+What it does:
+- Provides broader region shapes for the map
+
+
+FILE: public/data/oman_regions_adm2.geojson
+
+Purpose:
+ADM2 Oman region boundaries.
+
+What it does:
+- Provides deeper region shapes when zooming in
+
+
+FILE: .env
+
+Purpose:
+Environment configuration.
+
+What it does:
+- Stores API keys and Firebase values
+- Keeps sensitive config outside the main source files
+
+
+8. FINAL NOTE
+
+The project is organized into components, utilities, data, public assets, and docs.
+This structure makes the system easier to understand, maintain, explain, and present.

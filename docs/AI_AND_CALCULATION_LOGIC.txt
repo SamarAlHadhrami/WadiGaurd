@@ -1,0 +1,240 @@
+1. INTRODUCTION
+
+This file explains how the current code calculates risk.
+The system uses shared logic across Scan, Map, Route, Community, and Voice features.
+
+
+2. MAIN IDEA
+
+WadiGuard AI+ does not depend on one signal only.
+It combines multiple signals before deciding the final risk.
+
+Main signals:
+- weather
+- community reports
+- image analysis
+- note text
+- memory support
+
+
+3. MAIN RISK ENGINE
+
+Main file:
+- `src/utils/riskEngine.js`
+
+Most important functions:
+- `computeIntelligentRisk()`
+- `computeEnvironmentalRisk()`
+- `getRiskLevel()`
+- `buildDynamicExplanation()`
+- `matchHistoricalPattern()`
+
+
+4. GLOBAL RISK FORMULA
+
+Main score path:
+
+Final Risk Score =
+- Vision Score
+- Text Score
+- Weather Score
+- Image Presence Score
+- Community Score
+- Memory Score
+
+The total is capped at 100.
+
+Important detail:
+- Memory is a supporting factor
+- Memory is only added strongly when active signals already exist
+
+
+5. WEATHER LOGIC
+
+Weather functions:
+- `getWeatherData()`
+- `getForecastTimeline()`
+
+Source:
+- OpenWeather API
+
+How weather becomes risk:
+
+In `scoreWeatherRisk()`:
+- rainfall > 30 mm -> 40 points
+- rainfall >= 20 mm -> 30 points
+- rainfall >= 10 mm -> 20 points
+- rainfall > 0 mm -> 10 points
+- rainfall = 0 mm -> 0 points
+
+Rainfall labels:
+- 0 mm -> No rain
+- below 3 mm -> Light rain
+- below 8 mm -> Moderate rain
+- 8 mm and above -> Heavy rain
+
+
+6. COMMUNITY LOGIC
+
+Community helper file:
+- `src/utils/communityService.js`
+
+Important functions:
+- `distanceKm()`
+- `getNearbyReports()`
+- `countNearbyReports()`
+- `filterReportsWithinDays()`
+- `filterSameDayReports()`
+
+How community affects risk:
+
+In `computeIntelligentRisk()`:
+- community score = `communityCount * 10`
+- maximum community score = 20
+
+In environmental scoring:
+- nearby reports are counted and passed into `computeEnvironmentalRisk()`
+
+Why this matters:
+- Community reports act like live local field evidence
+
+
+7. IMAGE LOGIC
+
+Image analysis file:
+- `src/utils/apiService.js`
+
+Risk scoring file:
+- `src/utils/riskEngine.js`
+
+Image flow:
+- User uploads image
+- App sends image to Google Vision
+- Vision returns labels
+- Labels are converted into weighted score
+
+Current label weighting:
+- `flood` -> +50
+- `water` -> +30
+- `river` -> +20
+- `road` -> +10
+- `vehicle` -> +10
+
+Important limits:
+- `scoreVisionLabels()` caps the label score at 60
+- `computeIntelligentRisk()` adds +10 when an image is present
+
+
+8. NOTE TEXT LOGIC
+
+Text logic lives in:
+- `analyzeReportNote()`
+- `scoreDescriptionRisk()`
+
+Examples of stronger text signals:
+- flood
+- overflowing
+- rising fast
+- strong current
+
+Examples of medium signals:
+- water flowing
+- pooling
+- rising water
+
+Examples of lower signals:
+- wet
+- small water
+
+This helps the app use the user note as supporting evidence.
+
+
+9. MEMORY LOGIC
+
+Memory data comes from:
+- `src/data/wadis.js`
+
+Main memory functions:
+- `scoreMemoryRisk()`
+- `matchHistoricalPattern()`
+
+How memory works:
+- nearby known wadis provide supporting memory
+- historical patterns compare rainfall, image score, and season
+
+Memory contribution:
+- nearby wadi -> +20
+- historical match -> +25
+- memory score is capped at 25
+
+Important:
+- memory supports the decision
+- memory does not drive the whole result by itself
+
+
+10. RISK LEVEL RULES
+
+Risk levels are decided in `getRiskLevel()`:
+
+- 71 to 100 -> HIGH
+- 31 to 70 -> MEDIUM
+- 0 to 30 -> LOW
+
+These labels are reused across the full app.
+
+
+11. FEATURE-SPECIFIC LOGIC
+
+Scan
+- Uses image, weather, forecast, memory, and nearby reports
+- Runs `computeIntelligentRisk()` for now, +1H, and +2H
+
+Map Click
+- Uses weather, forecast, memory, and nearby reports
+- Runs `computeEnvironmentalRisk()`
+
+Region Overlay
+- Uses weighted rainfall and community influence by region
+- Builds region-level risk and rain colors
+
+Route Analysis
+- Samples route points
+- Gets forecast along the route
+- Finds dominant nearby memory context
+- Uses `computeEnvironmentalRisk()` for route timeline
+- Compares main route with alternatives when risk becomes HIGH
+
+Community Reports
+- Uses image, note text, weather, and memory
+- Calculates report risk before saving
+
+Voice Assistant
+- Resolves location
+- Loads weather and forecast
+- Counts nearby reports
+- Uses memory and risk logic to answer safety questions
+
+
+12. EXPLANATION LOGIC
+
+Main explanation builder:
+- `buildDynamicExplanation()`
+
+AI explanation helpers:
+- `generateRiskExplanation()`
+- `generateWadiEchoReply()`
+
+How explanations work:
+- Local explanation uses real system values
+- Claude can improve readability when available
+- If Claude is unavailable, the app still produces a local explanation
+
+
+13. SIMPLE SUMMARY
+
+In simple words:
+
+Image + Weather + Memory + Community + Text
+= Final Risk Score
+
+This shared logic is the reason the app can give consistent results across different features.

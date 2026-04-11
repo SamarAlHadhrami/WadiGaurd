@@ -1,0 +1,154 @@
+1. PROJECT OVERVIEW
+
+WadiGuard AI+ is a flood-risk awareness system built for Oman.
+It helps users understand whether a place, route, or wadi area may be dangerous before they travel or enter it.
+
+The system combines:
+- live weather
+- community reports
+- historical wadi memory
+- image analysis
+- map and route context
+
+Instead of showing raw data only, it gives:
+- a clear percentage score
+- a LOW / MEDIUM / HIGH result
+- a short explanation
+- a near-future timeline
+
+
+2. REAL-WORLD PROBLEM
+
+Flash floods in Oman can rise quickly.
+People may see a place that looks calm, but nearby rain, water flow, or wadi history may already make it dangerous.
+
+The main challenge is not only reading rainfall.
+The real challenge is helping people understand local danger at the right time using multiple signals together.
+
+
+3. SOLUTION
+
+WadiGuard AI+ works as a decision-support system.
+It collects live and local inputs, then turns them into one easy safety result.
+
+Main intelligence sources:
+- weather and forecast
+- uploaded image content
+- stored wadi memory
+- nearby community reports
+- route and map location context
+
+This gives users a practical answer, not only raw measurements.
+
+
+4. CORE FEATURES
+
+Scan
+- User uploads an image and selects a location
+- App checks image, weather, forecast, memory, and reports
+- Output shows risk score, label, explanation, and timeline
+
+Map Analysis
+- User explores Oman on an interactive map
+- App supports direct click analysis and region overlays
+- Output shows rainfall and risk context for selected locations
+
+Route Analysis
+- User enters start and destination
+- App checks the main route over time
+- If the route becomes HIGH risk, the app searches for a safer route
+- Output can include a Google Maps redirect for the safer route
+
+Community Reports
+- Users submit observations with image, note, and location
+- Reports are stored in Firestore when available
+- Reports strengthen local awareness across the whole app
+
+Voice Assistant
+- User asks by text or voice
+- App checks location, weather, memory, and reports
+- Output is a natural-language safety answer
+
+
+5. AI INNOVATION
+
+The AI value in WadiGuard AI+ comes from combining several smart signals together.
+
+Image understanding:
+- Google Vision detects labels such as water, flood, river, road, and vehicle
+
+Natural-language support:
+- Claude can generate human-readable explanations and voice-assistant replies
+
+Decision intelligence:
+- Shared risk logic combines image, weather, memory, and community into one result
+
+This is useful because the app does not rely on a single signal only.
+
+
+6. TECHNICAL STACK
+
+React
+- Builds the frontend screens and interactions
+
+Vite
+- Runs and builds the app quickly
+
+Leaflet
+- Powers maps, markers, route lines, and location picking
+
+OpenWeather
+- Provides current weather and short forecast rainfall
+
+OpenRouteService
+- Provides route geometry and route alternatives
+
+Nominatim
+- Converts place names to coordinates and coordinates to place names
+
+Firebase Firestore
+- Stores community reports and updates the app in real time
+
+Google Vision
+- Reads image labels from uploaded photos
+
+Claude API
+- Builds natural-language explanations and assistant replies when available
+
+
+7. DATA FLOW
+
+Simple system flow:
+
+User input
+-> location resolution
+-> weather and forecast loading
+-> memory and nearby report checks
+-> image or text analysis when available
+-> shared risk calculation
+-> score, label, timeline, and explanation
+
+This flow is reused across Scan, Map, Route, Community, and WadiEcho.
+
+
+8. WHY THE SYSTEM IS STRONG
+
+WadiGuard AI+ is stronger than a normal weather app because it combines:
+- rain conditions
+- local field reports
+- historical wadi context
+- image clues
+- map and route context
+
+This makes the final result more useful for real decisions.
+
+
+9. PRACTICAL IMPACT
+
+The app can help:
+- reduce unsafe travel into flood-prone places
+- improve public awareness
+- support faster decision making
+- combine local community evidence with live data
+
+In simple words, WadiGuard AI+ turns complex flood information into a clear safety result that is easier for people to act on.
